@@ -1,0 +1,16 @@
+$background: #3b74f2;
+.button {
+    font-weight: bold;
+    color:white;
+    background: $background;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 11px 20px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    &:hover {
+        cursor: pointer;
+        background: darken($background,5);
+    }
+}

@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
+@import "./components/button.scss";
+@import "./components/loader.scss";
+@import "./components/cart.scss";
+
+html,
+body {
+    padding: 0;
+    margin: 0;
+    background: #d1d8e5;
+    font-family: "Poppins", sans-serif;
+    // font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+* {
+    box-sizing: border-box;
+}
+
