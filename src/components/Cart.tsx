@@ -4,6 +4,7 @@ import Button from "./Button";
 import CartItem from "./CartItem";
 import axios from "axios";
 import _ from "lodash";
+import Alert from "./Alert";
 
 interface IResponseCartItems {
     uniqueId: string;
@@ -12,7 +13,7 @@ interface IResponseCartItems {
     productRefId?: string;
     name: string;
     price: number;
-    sellingPrice: number
+    sellingPrice: number;
     imageUrl: string;
 }
 
@@ -33,7 +34,11 @@ export default class Cart extends React.Component<any, {}> {
         show: this.props.show ?? false,
         loading: false,
         cartItems: [] as Array<IResponseCartItems>,
-        totals: {},
+        totals: {
+            value: 0,
+            items: 0,
+            discount: 0,
+        },
     };
 
     componentDidMount() {
@@ -42,8 +47,8 @@ export default class Cart extends React.Component<any, {}> {
 
     componentDidUpdate() {
         if (this.props.show !== this.state.show) {
-            this.setState({ show: this.props.show ?? false },() => {
-                if(this.props.show == true) {
+            this.setState({ show: this.props.show ?? false }, () => {
+                if (this.props.show == true) {
                     this.loadItems();
                 }
             });
@@ -53,16 +58,14 @@ export default class Cart extends React.Component<any, {}> {
     loadItems = () => {
         this.setState({ loading: true });
         axios
-            .get<IResponseCart>(
-                "https://s3.us-west-2.amazonaws.com/secure.notion-static.com/11b895d0-bc64-4f3a-bfa9-7c652be8d415/acima-10-reais.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20220112%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20220112T192836Z&X-Amz-Expires=86400&X-Amz-Signature=1cb7359464adeefd56ca8c3408805ff6647d69566a8b8c9fd13a68efdd2f1a2d&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22acima-10-reais.json%22&x-id=GetObject",
-            )
+            .get<IResponseCart>(this.props.url)
             .then((res) => {
                 this.setState({
                     cartItems: res.data.items,
                     totals: {
-                        value: res.data.value / 10,
-                        items: (_.find(res.data.totalizers, { id: "Items" })?.value  ?? 0) / 10,
-                        discounts: (_.find(res.data.totalizers, { id: "Discounts" })?.value ?? 0 ) / 10,
+                        value: res.data.value / 100,
+                        items: (_.find(res.data.totalizers, { id: "Items" })?.value ?? 0) / 100,
+                        discounts: (_.find(res.data.totalizers, { id: "Discounts" })?.value ?? 0) / 100,
                     },
                 });
             })
@@ -76,10 +79,14 @@ export default class Cart extends React.Component<any, {}> {
         const output = [];
         for (var i in this.state.cartItems) {
             const item = this.state.cartItems[i];
-            output.push(<CartItem name={item.name} price={item.price}  image={item.imageUrl} key={i} />);
+            output.push(<CartItem name={item.name} price={item.sellingPrice} total={item.price} image={item.imageUrl} key={i} />);
         }
         return output;
     };
+
+    floatToReal(value: number) {
+        return value?.toFixed(2).replace(".", ",");
+    }
 
     render() {
         if (!this.state.show) {
@@ -106,11 +113,14 @@ export default class Cart extends React.Component<any, {}> {
                             <div className="cart-header">Meu carrinho</div>
                             <div className="cart-list">{this.renderItemList()}</div>
                             <div className="cart-sum">
-                                <div className="cart-sum-text">Total</div>
-                                <div className="cart-sum-value">R$ 9,55</div>
+                                <div className="cart-sum-items">
+                                    <div className="cart-sum-text">Total</div>
+                                    <div className="cart-sum-value">R$ {this.floatToReal(this.state.totals?.value ?? 0)}</div>
+                                </div>
+                                {this.state.totals?.value >= 10 && <Alert>Parabéns, sua compra tem frete grátis !</Alert>}
                             </div>
                             <div className="cart-footer">
-                                <Button>Finalizar compra</Button>
+                                <Button onClick={this.props.onSubmit}>Finalizar compra</Button>
                             </div>
                         </>
                     )}
